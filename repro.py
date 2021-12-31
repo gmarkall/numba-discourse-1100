@@ -25,7 +25,7 @@ def cuda_binary_dilate_u8(vol, out, kern):
 
     tx, ty, tz = cuda.threadIdx.x, cuda.threadIdx.y, cuda.threadIdx.z
 
-    if z >= 0 and z < d and y >= 0 and y < h and x >= 0 and x < w:
+    if z < d and y < h and x < w:
         out[z, y, x] = False
 
         # put kern in shared memory?
