@@ -13,26 +13,31 @@ import pickle
 # repo due to size.
 CHECK_OUTPUT = False
 
+# Hardcode dimension in kernel to allow for better compiler optimization
+NKERN = 3
+
 
 @cuda.jit
 def cuda_binary_dilate_u8(vol, out, kern):
     z, y, x = cuda.grid(3)
     d, h, w = vol.shape
-    a, b, c = kern.shape
-    pa, pb, pc = a // 2, b // 2, c // 2
+    pa, pb, pc = NKERN // 2, NKERN // 2, NKERN // 2
+
+    tx, ty, tz = cuda.threadIdx.x, cuda.threadIdx.y, cuda.threadIdx.z
+
     if z >= 0 and z < d and y >= 0 and y < h and x >= 0 and x < w:
         out[z, y, x] = False
 
         # put kern in shared memory?
-        shared = cuda.shared.array((3, 3, 3), dtype=numba.boolean)
-        for i in range(a):
-            for j in range(b):
-                for k in range(c):
-                    shared[i, j, k] = kern[i, j, k]
+        shared = cuda.shared.array((NKERN, NKERN, NKERN), dtype=numba.boolean)
+        if tx < NKERN and ty < NKERN and tz < NKERN:
+            shared[tx, ty, tz] = kern[tx, ty, tz]
 
-        for i in range(a):
-            for j in range(b):
-                for k in range(c):
+        cuda.syncthreads()
+
+        for i in range(NKERN):
+            for j in range(NKERN):
+                for k in range(NKERN):
                     zz = z + i - pa
                     yy = y + j - pb
                     xx = x + k - pc
