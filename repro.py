@@ -11,7 +11,7 @@ import pickle
 
 # Whether to check output - reference version output's pickle not stored in git
 # repo due to size.
-CHECK_OUTPUT = False
+CHECK_OUTPUT = True
 
 # Hardcode dimension in kernel to allow for better compiler optimization
 NKERN = 3
@@ -64,7 +64,7 @@ def binary_dilate_u8_cuda(vol, kern, iterations=1):
     return b
 
 
-def test(d=256, h=256, w=256, niter=1):
+def test(d=512, h=512, w=512, niter=1):
     np.random.seed(1)
     vol = np.random.randn(d, h, w) > 1
     kern = np.random.randn(3, 3, 3) > 1
